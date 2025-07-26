@@ -70,4 +70,79 @@ T["filter emoji with missing group"] = function()
   eq(want, get)
 end
 
+T["calculate insert column - empty line normal mode"] = function()
+  local get = utils._calculate_insert_col(0, 0, 'n')
+  local want = 0
+  eq(want, get)
+end
+
+T["calculate insert column - first char normal mode"] = function()
+  local get = utils._calculate_insert_col(0, 5, 'n')
+  local want = 1
+  eq(want, get)
+end
+
+T["calculate insert column - middle char normal mode"] = function()
+  local get = utils._calculate_insert_col(2, 5, 'n')
+  local want = 3
+  eq(want, get)
+end
+
+T["calculate insert column - last char normal mode"] = function()
+  local get = utils._calculate_insert_col(4, 5, 'n')
+  local want = 5
+  eq(want, get)
+end
+
+T["calculate insert column - single char normal mode"] = function()
+  local get = utils._calculate_insert_col(0, 1, 'n')
+  local want = 1
+  eq(want, get)
+end
+
+T["calculate insert column - empty line insert mode"] = function()
+  local get = utils._calculate_insert_col(0, 0, 'i')
+  local want = 0
+  eq(want, get)
+end
+
+T["calculate insert column - beginning insert mode"] = function()
+  local get = utils._calculate_insert_col(0, 5, 'i')
+  local want = 0
+  eq(want, get)
+end
+
+T["calculate insert column - middle insert mode"] = function()
+  local get = utils._calculate_insert_col(2, 5, 'i')
+  local want = 2
+  eq(want, get)
+end
+
+T["calculate insert column - end insert mode"] = function()
+  local get = utils._calculate_insert_col(5, 5, 'i')
+  local want = 5
+  eq(want, get)
+end
+
+-- Edge case tests
+T["calculate insert column - beyond line length normal mode"] = function()
+  -- This shouldn't happen in practice, but let's ensure it's handled gracefully
+  local get = utils._calculate_insert_col(10, 5, 'n')
+  local want = 5  -- Should be clamped to line length
+  eq(want, get)
+end
+
+T["calculate insert column - beyond line length insert mode"] = function()
+  -- This shouldn't happen in practice, but let's ensure it's handled gracefully
+  local get = utils._calculate_insert_col(10, 5, 'i')
+  local want = 5  -- Should be clamped to line length
+  eq(want, get)
+end
+
+T["calculate insert column - visual mode treated as insert"] = function()
+  -- Visual mode should be treated like insert mode
+  local get = utils._calculate_insert_col(2, 5, 'v')
+  local want = 2
+  eq(want, get)
+end
 return T

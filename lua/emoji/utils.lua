@@ -102,12 +102,13 @@ M.insert_string_at_current_cursor = function(text)
   local row, col = table.unpack(vim.api.nvim_win_get_cursor(0))
   row = row - 1 -- Adjust because Lua is 1-indexed but Neovim API expects 0-indexed
 
-  -- In normal mode, cursor is on character, so we need to insert after it
+  -- Get the current line to check its length
+  local line = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1] or ""
+  local line_len = #line
+
+  -- Calculate where to insert the text
   local mode = vim.fn.mode()
-  local insert_col = col
-  if mode == 'n' then
-    insert_col = col + 1
-  end
+  local insert_col = M._calculate_insert_col(col, line_len, mode)
 
   vim.api.nvim_buf_set_text(buf, row, insert_col, row, insert_col, { text })
   vim.cmd('startinsert')
@@ -154,6 +155,26 @@ M.get_kaomoji_data_path = function()
     return
   end
   return path:new(plugin_path, kaomoji_path)
+end
+
+-- Helper function to calculate insert column position (for testing)
+-- This extracts the logic from insert_string_at_current_cursor for unit testing
+M._calculate_insert_col = function(col, line_len, mode)
+  local insert_col = col
+  if mode == 'n' then
+    -- In normal mode, cursor is on a character (or at position 0 on empty line)
+    if line_len == 0 then
+      -- Empty line: insert at the beginning
+      insert_col = 0
+    else
+      -- Non-empty line: insert after current character, but ensure it's within bounds
+      insert_col = math.min(col + 1, line_len)
+    end
+  else
+    -- In insert mode, cursor is between characters, insert at current position
+    insert_col = math.min(col, line_len)
+  end
+  return insert_col
 end
 
 return M
