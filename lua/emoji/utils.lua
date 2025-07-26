@@ -101,7 +101,17 @@ M.insert_string_at_current_cursor = function(text)
   table.unpack = table.unpack or unpack -- 5.1 compatibility
   local row, col = table.unpack(vim.api.nvim_win_get_cursor(0))
   row = row - 1 -- Adjust because Lua is 1-indexed but Neovim API expects 0-indexed
-  vim.api.nvim_buf_set_text(buf, row, col, row, col, { text })
+
+  -- In normal mode, cursor is on character, so we need to insert after it
+  local mode = vim.fn.mode()
+  local insert_col = col
+  if mode == 'n' then
+    insert_col = col + 1
+  end
+
+  vim.api.nvim_buf_set_text(buf, row, insert_col, row, insert_col, { text })
+  vim.cmd('startinsert')
+  vim.api.nvim_win_set_cursor(0, { row + 1, insert_col + #text })
 end
 
 M.create_emoji_options = function(data)
